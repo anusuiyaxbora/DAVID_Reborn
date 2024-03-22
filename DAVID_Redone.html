@@ -635,7 +635,7 @@ str(gocombined_terms)</code></pre>
 <p>Enrichment analysis</p>
 <pre class="r"><code>ora &lt;- as.data.frame(enricher(gene = Genevec ,
                               maxGSSize = 50000, 
-                              TERM2GENE = gobp_terms,
+                              TERM2GENE = gocombined_terms, #for TERM2GENE, options are: gobp_terms, gocc_terms, gomf_terms, gocombined_terms
                               pAdjustMethod=&quot;fdr&quot;,  
                               pvalueCutoff = 1, 
                               qvalueCutoff = 1  ))</code></pre>
@@ -654,30 +654,55 @@ br &lt;- as.numeric(sapply(strsplit(ora$BgRatio,&quot;/&quot;),&quot;[[&quot;,1)
 ora_new &lt;- cbind(ora, gr, br)
 
 ora_new</code></pre>
-<pre><code>##                                                                                  ID
-## GO:0055085 BP transmembrane transport         GO:0055085 BP transmembrane transport
-## GO:0034220 BP ion transmembrane transport GO:0034220 BP ion transmembrane transport
-## GO:0030154 BP cell differentiation               GO:0030154 BP cell differentiation
-##                                                                         Description
-## GO:0055085 BP transmembrane transport         GO:0055085 BP transmembrane transport
-## GO:0034220 BP ion transmembrane transport GO:0034220 BP ion transmembrane transport
-## GO:0030154 BP cell differentiation               GO:0030154 BP cell differentiation
-##                                           GeneRatio   BgRatio       pvalue
-## GO:0055085 BP transmembrane transport        25/207 668/17350 4.267515e-07
-## GO:0034220 BP ion transmembrane transport    14/207 253/17350 2.189257e-06
-## GO:0030154 BP cell differentiation           16/207 456/17350 1.207912e-04
-##                                               p.adjust       qvalue
-## GO:0055085 BP transmembrane transport     0.0002987261 0.0002717733
-## GO:0034220 BP ion transmembrane transport 0.0007662400 0.0006971055
-## GO:0030154 BP cell differentiation        0.0120791223 0.0109892767
-##                                                                                                                                                                                                     geneID
-## GO:0055085 BP transmembrane transport     CSN3/FXYD4/RHBG/AQP10/AQP5/LCN1/CLCNKB/RHAG/ABCB5/GABRA3/ATP6V0A4/ATP6V0D2/PIP/SLC4A1/ATP6V1B1/SLC4A9/TRPV5/AQP6/ATP6V1G3/GJD2/BSND/SLC26A7/RHCG/SLC24A2/ATP13A5
-## GO:0034220 BP ion transmembrane transport                                                              FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/BSND/SLC24A2/ATP13A5
-## GO:0030154 BP cell differentiation                                                                            CPLX2/HMX2/KRT6A/FOXI1/SMOC1/ABCB5/SOHLH1/ZIC2/FOXE1/NR5A1/DAZ1/ROS1/FOXI2/TBATA/TDGF1/HEMGN
-##                                           Count         gr         br
-## GO:0055085 BP transmembrane transport        25 0.12077295 0.03850144
-## GO:0034220 BP ion transmembrane transport    14 0.06763285 0.01458213
-## GO:0030154 BP cell differentiation           16 0.07729469 0.02628242</code></pre>
+<pre><code>##                                                                                                      ID
+## GO:0005576 CC extracellular region                                   GO:0005576 CC extracellular region
+## GO:0055085 BP transmembrane transport                             GO:0055085 BP transmembrane transport
+## GO:0034220 BP ion transmembrane transport                     GO:0034220 BP ion transmembrane transport
+## GO:0005615 CC extracellular space                                     GO:0005615 CC extracellular space
+## GO:0030154 BP cell differentiation                                   GO:0030154 BP cell differentiation
+## GO:0005887 CC integral component of plasma membrane GO:0005887 CC integral component of plasma membrane
+##                                                                                             Description
+## GO:0005576 CC extracellular region                                   GO:0005576 CC extracellular region
+## GO:0055085 BP transmembrane transport                             GO:0055085 BP transmembrane transport
+## GO:0034220 BP ion transmembrane transport                     GO:0034220 BP ion transmembrane transport
+## GO:0005615 CC extracellular space                                     GO:0005615 CC extracellular space
+## GO:0030154 BP cell differentiation                                   GO:0030154 BP cell differentiation
+## GO:0005887 CC integral component of plasma membrane GO:0005887 CC integral component of plasma membrane
+##                                                     GeneRatio    BgRatio
+## GO:0005576 CC extracellular region                     50/240 1594/19676
+## GO:0055085 BP transmembrane transport                  25/240  668/19676
+## GO:0034220 BP ion transmembrane transport              14/240  253/19676
+## GO:0005615 CC extracellular space                      33/240 1301/19676
+## GO:0030154 BP cell differentiation                     16/240  456/19676
+## GO:0005887 CC integral component of plasma membrane    30/240 1315/19676
+##                                                           pvalue     p.adjust
+## GO:0005576 CC extracellular region                  4.251253e-10 4.553091e-07
+## GO:0055085 BP transmembrane transport               7.086893e-07 2.530021e-04
+## GO:0034220 BP ion transmembrane transport           2.934677e-06 7.857597e-04
+## GO:0005615 CC extracellular space                   5.164523e-05 5.781590e-03
+## GO:0030154 BP cell differentiation                  1.610957e-04 1.232382e-02
+## GO:0005887 CC integral component of plasma membrane 6.986166e-04 2.992874e-02
+##                                                           qvalue
+## GO:0005576 CC extracellular region                  4.175177e-07
+## GO:0055085 BP transmembrane transport               2.320025e-04
+## GO:0034220 BP ion transmembrane transport           7.205403e-04
+## GO:0005615 CC extracellular space                   5.301709e-03
+## GO:0030154 BP cell differentiation                  1.130092e-02
+## GO:0005887 CC integral component of plasma membrane 2.744460e-02
+##                                                                                                                                                                                                                                                                                                                                                            geneID
+## GO:0005576 CC extracellular region                  PRSS38/FDCSP/IGFL3/LCN15/CSN3/ADIPOQ/SPINK6/DEFB125/TTR/LCN1/BPIFA2/IGF2/ADGRF1/THBS4/TMPRSS11E/MTRNR2L6/PNLIP/VTN/EPPIN/VSTM2L/S100A7/CRP/MATN4/KISS1/C1QL2/KIRREL3/PIP/PSG5/LGI1/NXPH2/ADCYAP1/WFIKKN2/KERA/LUZP2/GCG/DEFA4/KLK4/DEFA3/SPACA3/NPPB/CRISP3/SFTPB/FGF9/PSG9/VWA5B1/CGA/GREM2/FAM24B/PSG8/PRG4
+## GO:0055085 BP transmembrane transport                                                                                                                                                            CSN3/FXYD4/RHBG/AQP10/AQP5/LCN1/CLCNKB/RHAG/ABCB5/GABRA3/ATP6V0A4/ATP6V0D2/PIP/SLC4A1/ATP6V1B1/SLC4A9/TRPV5/AQP6/ATP6V1G3/GJD2/BSND/SLC26A7/RHCG/SLC24A2/ATP13A5
+## GO:0034220 BP ion transmembrane transport                                                                                                                                                                                                                     FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/BSND/SLC24A2/ATP13A5
+## GO:0005615 CC extracellular space                                                                                                                              MUC16/PTPRZ1/CSN3/ADIPOQ/IL22RA2/TTR/SPOCK3/LCN1/IGF2/RBBP8NL/THBS4/VTN/EPPIN/INSL4/CRP/KISS1/SERPINB3/PIP/LGI1/CRISP2/ADCYAP1/KERA/GCG/DEFA4/DEFA3/OLFM4/NPPB/CRISP3/SFTPB/FGF9/GREM2/FRMD7/TDGF1
+## GO:0030154 BP cell differentiation                                                                                                                                                                                                                                   CPLX2/HMX2/KRT6A/FOXI1/SMOC1/ABCB5/SOHLH1/ZIC2/FOXE1/NR5A1/DAZ1/ROS1/FOXI2/TBATA/TDGF1/HEMGN
+## GO:0005887 CC integral component of plasma membrane                                                                                                                    PTPRZ1/UTS2R/HTR5A/NTSR2/FXYD4/RHBG/MLANA/AQP5/CLCNKB/RHAG/GRIK1/ABCB5/TMPRSS11E/GABRA3/SLC4A1/GRM1/RDH8/HTR1D/TRPV5/SLC18A3/AQP6/CCKAR/CHRM1/BSND/SLC26A7/RHCG/SLC24A2/GCGR/ADRB1/ATP13A5
+##                                                     Count         gr         br
+## GO:0005576 CC extracellular region                     50 0.20833333 0.08101240
+## GO:0055085 BP transmembrane transport                  25 0.10416667 0.03394999
+## GO:0034220 BP ion transmembrane transport              14 0.05833333 0.01285830
+## GO:0005615 CC extracellular space                      33 0.13750000 0.06612116
+## GO:0030154 BP cell differentiation                     16 0.06666667 0.02317544
+## GO:0005887 CC integral component of plasma membrane    30 0.12500000 0.06683269</code></pre>
 <pre class="r"><code>## put ES values in table - append</code></pre>
 <pre class="r"><code>ora_new %&gt;%
   kbl(caption=&quot;Genes and GO Terms identified&quot;) %&gt;%
@@ -728,31 +753,69 @@ br
 <tbody>
 <tr>
 <td style="text-align:left;">
-<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
-transport
+<a href="GO:0005576" class="uri">GO:0005576</a> CC extracellular region
 </td>
 <td style="text-align:left;">
-<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
-transport
+<a href="GO:0005576" class="uri">GO:0005576</a> CC extracellular region
 </td>
 <td style="text-align:left;">
-<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
-transport
+<a href="GO:0005576" class="uri">GO:0005576</a> CC extracellular region
 </td>
 <td style="text-align:left;">
-25/207
+50/240
 </td>
 <td style="text-align:left;">
-668/17350
+1594/19676
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0.0000005
 </td>
 <td style="text-align:right;">
 0.0000004
 </td>
-<td style="text-align:right;">
-0.0002987
+<td style="text-align:left;">
+PRSS38/FDCSP/IGFL3/LCN15/CSN3/ADIPOQ/SPINK6/DEFB125/TTR/LCN1/BPIFA2/IGF2/ADGRF1/THBS4/TMPRSS11E/MTRNR2L6/PNLIP/VTN/EPPIN/VSTM2L/S100A7/CRP/MATN4/KISS1/C1QL2/KIRREL3/PIP/PSG5/LGI1/NXPH2/ADCYAP1/WFIKKN2/KERA/LUZP2/GCG/DEFA4/KLK4/DEFA3/SPACA3/NPPB/CRISP3/SFTPB/FGF9/PSG9/VWA5B1/CGA/GREM2/FAM24B/PSG8/PRG4
 </td>
 <td style="text-align:right;">
-0.0002718
+50
+</td>
+<td style="text-align:right;">
+0.2083333
+</td>
+<td style="text-align:right;">
+0.0810124
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
+transport
+</td>
+<td style="text-align:left;">
+<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
+transport
+</td>
+<td style="text-align:left;">
+<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
+transport
+</td>
+<td style="text-align:left;">
+25/240
+</td>
+<td style="text-align:left;">
+668/19676
+</td>
+<td style="text-align:right;">
+0.0000007
+</td>
+<td style="text-align:right;">
+0.0002530
+</td>
+<td style="text-align:right;">
+0.0002320
 </td>
 <td style="text-align:left;">
 CSN3/FXYD4/RHBG/AQP10/AQP5/LCN1/CLCNKB/RHAG/ABCB5/GABRA3/ATP6V0A4/ATP6V0D2/PIP/SLC4A1/ATP6V1B1/SLC4A9/TRPV5/AQP6/ATP6V1G3/GJD2/BSND/SLC26A7/RHCG/SLC24A2/ATP13A5
@@ -761,10 +824,10 @@ CSN3/FXYD4/RHBG/AQP10/AQP5/LCN1/CLCNKB/RHAG/ABCB5/GABRA3/ATP6V0A4/ATP6V0D2/PIP/S
 25
 </td>
 <td style="text-align:right;">
-0.1207729
+0.1041667
 </td>
 <td style="text-align:right;">
-0.0385014
+0.0339500
 </td>
 </tr>
 <tr>
@@ -781,19 +844,19 @@ transport
 transport
 </td>
 <td style="text-align:left;">
-14/207
+14/240
 </td>
 <td style="text-align:left;">
-253/17350
+253/19676
 </td>
 <td style="text-align:right;">
-0.0000022
+0.0000029
 </td>
 <td style="text-align:right;">
-0.0007662
+0.0007858
 </td>
 <td style="text-align:right;">
-0.0006971
+0.0007205
 </td>
 <td style="text-align:left;">
 FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/BSND/SLC24A2/ATP13A5
@@ -802,10 +865,48 @@ FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/B
 14
 </td>
 <td style="text-align:right;">
-0.0676329
+0.0583333
 </td>
 <td style="text-align:right;">
-0.0145821
+0.0128583
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<a href="GO:0005615" class="uri">GO:0005615</a> CC extracellular space
+</td>
+<td style="text-align:left;">
+<a href="GO:0005615" class="uri">GO:0005615</a> CC extracellular space
+</td>
+<td style="text-align:left;">
+<a href="GO:0005615" class="uri">GO:0005615</a> CC extracellular space
+</td>
+<td style="text-align:left;">
+33/240
+</td>
+<td style="text-align:left;">
+1301/19676
+</td>
+<td style="text-align:right;">
+0.0000516
+</td>
+<td style="text-align:right;">
+0.0057816
+</td>
+<td style="text-align:right;">
+0.0053017
+</td>
+<td style="text-align:left;">
+MUC16/PTPRZ1/CSN3/ADIPOQ/IL22RA2/TTR/SPOCK3/LCN1/IGF2/RBBP8NL/THBS4/VTN/EPPIN/INSL4/CRP/KISS1/SERPINB3/PIP/LGI1/CRISP2/ADCYAP1/KERA/GCG/DEFA4/DEFA3/OLFM4/NPPB/CRISP3/SFTPB/FGF9/GREM2/FRMD7/TDGF1
+</td>
+<td style="text-align:right;">
+33
+</td>
+<td style="text-align:right;">
+0.1375000
+</td>
+<td style="text-align:right;">
+0.0661212
 </td>
 </tr>
 <tr>
@@ -819,19 +920,19 @@ FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/B
 <a href="GO:0030154" class="uri">GO:0030154</a> BP cell differentiation
 </td>
 <td style="text-align:left;">
-16/207
+16/240
 </td>
 <td style="text-align:left;">
-456/17350
+456/19676
 </td>
 <td style="text-align:right;">
-0.0001208
+0.0001611
 </td>
 <td style="text-align:right;">
-0.0120791
+0.0123238
 </td>
 <td style="text-align:right;">
-0.0109893
+0.0113009
 </td>
 <td style="text-align:left;">
 CPLX2/HMX2/KRT6A/FOXI1/SMOC1/ABCB5/SOHLH1/ZIC2/FOXE1/NR5A1/DAZ1/ROS1/FOXI2/TBATA/TDGF1/HEMGN
@@ -840,10 +941,51 @@ CPLX2/HMX2/KRT6A/FOXI1/SMOC1/ABCB5/SOHLH1/ZIC2/FOXE1/NR5A1/DAZ1/ROS1/FOXI2/TBATA
 16
 </td>
 <td style="text-align:right;">
-0.0772947
+0.0666667
 </td>
 <td style="text-align:right;">
-0.0262824
+0.0231754
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<a href="GO:0005887" class="uri">GO:0005887</a> CC integral component of
+plasma membrane
+</td>
+<td style="text-align:left;">
+<a href="GO:0005887" class="uri">GO:0005887</a> CC integral component of
+plasma membrane
+</td>
+<td style="text-align:left;">
+<a href="GO:0005887" class="uri">GO:0005887</a> CC integral component of
+plasma membrane
+</td>
+<td style="text-align:left;">
+30/240
+</td>
+<td style="text-align:left;">
+1315/19676
+</td>
+<td style="text-align:right;">
+0.0006986
+</td>
+<td style="text-align:right;">
+0.0299287
+</td>
+<td style="text-align:right;">
+0.0274446
+</td>
+<td style="text-align:left;">
+PTPRZ1/UTS2R/HTR5A/NTSR2/FXYD4/RHBG/MLANA/AQP5/CLCNKB/RHAG/GRIK1/ABCB5/TMPRSS11E/GABRA3/SLC4A1/GRM1/RDH8/HTR1D/TRPV5/SLC18A3/AQP6/CCKAR/CHRM1/BSND/SLC26A7/RHCG/SLC24A2/GCGR/ADRB1/ATP13A5
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+0.1250000
+</td>
+<td style="text-align:right;">
+0.0668327
 </td>
 </tr>
 </tbody>

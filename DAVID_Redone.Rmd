@@ -74,7 +74,7 @@ Enrichment analysis
 ```{r enricher_code}
 ora <- as.data.frame(enricher(gene = Genevec ,
                               maxGSSize = 50000, 
-                              TERM2GENE = gobp_terms,
+                              TERM2GENE = gocombined_terms, #for TERM2GENE, options are: gobp_terms, gocc_terms, gomf_terms, gocombined_terms
                               pAdjustMethod="fdr",  
                               pvalueCutoff = 1, 
                               qvalueCutoff = 1  ))
