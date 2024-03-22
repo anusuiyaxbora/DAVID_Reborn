@@ -5,7 +5,6 @@ date: "2024-03-13"
 ---
 
 ```{r loading_libraries}
-# Load libraries ----------------------------------------------------------
 
 install.packages("pacman")  #this installs package. Only do once.
 
