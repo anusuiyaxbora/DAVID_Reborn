@@ -1,0 +1,137 @@
+---
+title: "DAVID Redone Code"
+output: html_document
+date: "2024-03-13"
+---
+
+```{r loading_libraries}
+# Load libraries ----------------------------------------------------------
+
+install.packages("pacman")  #this installs package. Only do once.
+
+pacman::p_load(clusterProfiler,
+               kableExtra,
+               rio,           # package for importing and exporting data
+               here,          # points R in particular directories to look for files; uses relative file paths; to tell                                 R where our data is; used with "rio" package; good for relative file path
+               dplyr,         # to manipulate data
+               usethis      # handy data cleaning functions
+)
+
+#library(clusterProfiler)
+#library(kableExtra)
+#library(gitcreds)
+#library(usethis)
+
+```
+
+
+## Extra comment: have to calculate enrichment scores
+
+Input gene list:
+
+``` {r loading_input_genes}
+
+genelist <- read.csv("PMC6587650.csv")
+Genevec <- genelist[, 1]
+
+```
+
+```{r load_GORDS}
+
+gobp <- rio::import(here::here("GO_dataset", "GObp.rds"))
+gocc <- rio::import(here::here("GO_dataset", "GOcc.rds"))
+gomf <- rio::import(here::here("GO_dataset", "GOmf.rds"))
+gocombined <- rio::import(here::here("GO_dataset", "GOcombined.rds"))
+
+#gobp <- readRDS("GObp.rds")
+#gocc <- readRDS("GOcc.rds")
+#gomf <- readRDS("GOmf.rds")
+#gocombined <- readRDS("GOcombined.rds")
+
+```
+
+
+```{r converting_RDS2gmt}
+gobp_terms <- rev(stack(gobp))
+str(gobp_terms)
+
+gocc_terms <- rev(stack(gocc))
+str(gocc_terms)
+
+gomf_terms <- rev(stack(gomf))
+str(gomf_terms)
+
+gocombined_terms <- rev(stack(gocombined))
+str(gocombined_terms)
+
+#goterms <- rev(stack(golist))
+#str(goterms)
+
+```
+
+Enrichment analysis
+
+```{r enricher_code}
+ora <- as.data.frame(enricher(gene = Genevec ,
+                              maxGSSize = 50000, 
+                              TERM2GENE = gobp_terms,
+                              pAdjustMethod="fdr",  
+                              pvalueCutoff = 1, 
+                              qvalueCutoff = 1  ))
+```
+
+``` {r view_heading_ora}
+#head(ora)
+
+```
+
+
+
+##calculating enrichment score
+
+``` {r ES_calculation}
+
+ora$gene <- NULL
+ora <- subset(ora,p.adjust<0.05 & Count >=10)
+ora_s <- rownames(ora)
+
+gr <- as.numeric(sapply(strsplit(ora$GeneRatio,"/"),"[[",1)) /
+  as.numeric(sapply(strsplit(ora$GeneRatio,"/"),"[[",2))
+
+br <- as.numeric(sapply(strsplit(ora$BgRatio,"/"),"[[",1)) /
+  as.numeric(sapply(strsplit(ora$BgRatio,"/"),"[[",2))
+
+ora_new <- cbind(ora, gr, br)
+
+ora_new
+
+## put ES values in table - append
+
+
+```
+
+
+```{r output_table}
+
+ora_new %>%
+  kbl(caption="Genes and GO Terms identified") %>%
+  kable_paper("hover", full_width = F)
+
+```
+
+## Session information
+
+For reproducibility.
+
+```{r,sessioninfo}
+
+sessionInfo()
+
+```
+
+```{r github_upload}
+
+##gitcreds_set()
+##git clone (https://github.com/anusuiyaxbora/DAVID_Reborn.git)
+
+```
