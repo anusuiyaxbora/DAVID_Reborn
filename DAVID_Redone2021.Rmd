@@ -1,0 +1,144 @@
+---
+title: "DAVID Redone Code for DAVID 2021"
+author: "Anusuiya Bora; s222331482@deakin.edu.au"
+#output: html_document
+output: 
+  html_document:
+    code_folding: show 
+date: "2024-03-13"
+updated date: "11/04/2024"
+---
+
+```{r loading_libraries}
+
+# install.packages("pacman")  #this installs package. Only do once.
+
+pacman::p_load(clusterProfiler,
+               kableExtra,
+               rio,           # package for importing and exporting data
+               here,          # points R in particular directories to look for files; uses relative file paths; to tell R where our data is; used with "rio" package; good for relative file path
+               dplyr,         # to manipulate data
+               usethis      # handy data cleaning functions
+)
+
+
+```
+
+
+Input gene list:
+
+``` {r loading_input_genes}
+
+genelist <- read.csv("PMC6587650.csv")
+Genevec <- genelist[, 1]
+
+```
+
+```{r load_GORDS, include = TRUE, eval = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
+
+gobp2021 <- rio::import(here::here("GO_Dataset_D2021", "GO_bp_2021.Rds"))
+gocc2021 <- rio::import(here::here("GO_Dataset_D2021", "GO_cc_2021.Rds"))
+gomf2021 <- rio::import(here::here("GO_Dataset_D2021", "GO_mf_2021.Rds"))
+gocombined2021 <- rio::import(here::here("GO_Dataset_D2021", "GO_combined_2021.Rds"))
+
+
+```
+
+
+```{r converting_RDS2gmt}
+gobp_terms <- rev(stack(gobp2021))
+str(gobp_terms)
+
+gocc_terms <- rev(stack(gocc2021))
+str(gocc_terms)
+
+gomf_terms <- rev(stack(gomf2021))
+str(gomf_terms)
+
+gocombined_terms <- rev(stack(gocombined2021))
+str(gocombined_terms)
+
+#goterms <- rev(stack(golist))
+#str(goterms)
+
+```
+
+## Enrichment analysis
+
+```{r enricher_code, include =FALSE}
+ora <- as.data.frame(enricher(gene = Genevec ,
+                              maxGSSize = 50000, 
+                              TERM2GENE = gocombined_terms, 
+                              #for TERM2GENE, options are: gobp_terms, gocc_terms,                                    gomf_terms, gocombined_terms
+                              pAdjustMethod="fdr",  
+                              pvalueCutoff = 1, 
+                              qvalueCutoff = 1  ))
+
+x <- gsub("/", " ", ora$geneID)
+x
+
+ora$geneID <- x
+
+ora %>% select(-ID)
+
+ora
+```
+
+``` {r view_heading_ora}
+#head(ora)
+
+```
+
+
+``` {r ES_calculation, include =FALSE}
+
+ora$gene <- NULL
+ora <- subset(ora,p.adjust<0.05 & Count >=10)
+ora_s <- rownames(ora)
+
+gr <- as.numeric(sapply(strsplit(ora$GeneRatio,"/"),"[[",1)) /
+  as.numeric(sapply(strsplit(ora$GeneRatio,"/"),"[[",2))
+
+br <- as.numeric(sapply(strsplit(ora$BgRatio,"/"),"[[",1)) /
+  as.numeric(sapply(strsplit(ora$BgRatio,"/"),"[[",2))
+
+ora_new <- cbind(ora, gr, br)
+
+ora_new
+
+## put ES values in table - append
+
+
+```
+
+
+```{r output_table}
+
+ora_new %>%
+  kbl(caption="Genes and GO Terms identified") %>%
+  kable_paper("hover", full_width = F)
+
+ora_new %>% 
+  select(Description, GeneRatio, BgRatio, pvalue, p.adjust, qvalue, geneID, Count)
+
+ora_new
+#remove_column(kable(ID), 1)
+
+```
+
+## Session information
+
+For reproducibility.
+
+```{r,sessioninfo}
+
+sessionInfo()
+
+```
+
+```{r github_upload}
+
+##gitcreds_set()
+##git clone (https://github.com/anusuiyaxbora/DAVID_Reborn.git)
+
+```

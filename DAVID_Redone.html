@@ -9,6 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Anusuiya Bora; s222331482@deakin.edu.au" />
 
 <meta name="date" content="2024-03-13" />
 
@@ -207,6 +208,83 @@ window.buildTabsets = function(tocID) {
   });
 };
 
+</script>
+<script>
+window.initializeCodeFolding = function(show) {
+
+  // handlers for show-all and hide all
+  $("#rmd-show-all-code").click(function() {
+    $('div.r-code-collapse').each(function() {
+      $(this).collapse('show');
+    });
+  });
+  $("#rmd-hide-all-code").click(function() {
+    $('div.r-code-collapse').each(function() {
+      $(this).collapse('hide');
+    });
+  });
+
+  // index for unique code element ids
+  var currentIndex = 1;
+
+  // select all R code blocks
+  var rCodeBlocks = $('pre.r, pre.python, pre.bash, pre.sql, pre.cpp, pre.stan, pre.julia, pre.foldable');
+  rCodeBlocks.each(function() {
+    // skip if the block has fold-none class
+    if ($(this).hasClass('fold-none')) return;
+
+    // create a collapsable div to wrap the code in
+    var div = $('<div class="collapse r-code-collapse"></div>');
+    var showThis = (show || $(this).hasClass('fold-show')) && !$(this).hasClass('fold-hide');
+    var id = 'rcode-643E0F36' + currentIndex++;
+    div.attr('id', id);
+    $(this).before(div);
+    $(this).detach().appendTo(div);
+
+    // add a show code button right above
+    var showCodeText = $('<span>' + (showThis ? 'Hide' : 'Show') + '</span>');
+    var showCodeButton = $('<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm code-folding-btn pull-right float-right"></button>');
+    showCodeButton.append(showCodeText);
+    showCodeButton
+        .attr('data-toggle', 'collapse')
+        .attr('data-bs-toggle', 'collapse') // BS5
+        .attr('data-target', '#' + id)
+        .attr('data-bs-target', '#' + id)   // BS5
+        .attr('aria-expanded', showThis)
+        .attr('aria-controls', id);
+
+    var buttonRow = $('<div class="row"></div>');
+    var buttonCol = $('<div class="col-md-12"></div>');
+
+    buttonCol.append(showCodeButton);
+    buttonRow.append(buttonCol);
+
+    div.before(buttonRow);
+
+    // show the div if necessary
+    if (showThis) div.collapse('show');
+
+    // update state of button on show/hide
+    //   * Change text
+    //   * add a class for intermediate states styling
+    div.on('hide.bs.collapse', function () {
+      showCodeText.text('Show');
+      showCodeButton.addClass('btn-collapsing');
+    });
+    div.on('hidden.bs.collapse', function () {
+      showCodeButton.removeClass('btn-collapsing');
+    });
+    div.on('show.bs.collapse', function () {
+      showCodeText.text('Hide');
+      showCodeButton.addClass('btn-expanding');
+    });
+    div.on('shown.bs.collapse', function () {
+      showCodeButton.removeClass('btn-expanding');
+    });
+
+  });
+
+}
 </script>
 <style type="text/css">.hljs-literal {
 color: #990073;
@@ -555,6 +633,9 @@ display: none;
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -571,140 +652,53 @@ display: none;
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">DAVID Redone Code</h1>
+<h4 class="author">Anusuiya Bora; <a href="mailto:s222331482@deakin.edu.au" class="email">s222331482@deakin.edu.au</a></h4>
 <h4 class="date">2024-03-13</h4>
 
 </div>
 
 
-<pre class="r"><code># Load libraries ----------------------------------------------------------
-
-install.packages(&quot;pacman&quot;)  #this installs package. Only do once.</code></pre>
+<div id="methodology" class="section level3">
+<h3>Methodology:</h3>
+<ol style="list-style-type: decimal">
+<li>Loading libraries</li>
+</ol>
+<pre class="r"><code>install.packages(&quot;pacman&quot;)  #this installs package. Only do once.</code></pre>
 <pre><code>## Installing package into &#39;/mnt/data/anusuiya/R/x86_64-pc-linux-gnu-library/4.3&#39;
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre class="r"><code>pacman::p_load(clusterProfiler,
                kableExtra,
                rio,           # package for importing and exporting data
-               here,          # points R in particular directories to look for files; uses relative file paths; to tell                                 R where our data is; used with &quot;rio&quot; package; good for relative file path
+               here,          # points R in particular directories to look for files;                          uses relative file paths; to tell R where our data is; used with &quot;rio&quot; package; good for relative file path
                dplyr,         # to manipulate data
-               usethis      # handy data cleaning functions
-)
-
-#library(clusterProfiler)
-#library(kableExtra)
-#library(gitcreds)
-#library(usethis)</code></pre>
-<div id="extra-comment-have-to-calculate-enrichment-scores" class="section level2">
-<h2>Extra comment: have to calculate enrichment scores</h2>
-<p>Input gene list:</p>
+               usethis,       # handy data cleaning functions
+               gtsummary
+)</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Input gene list:</li>
+</ol>
 <pre class="r"><code>genelist &lt;- read.csv(&quot;PMC6587650.csv&quot;)
 Genevec &lt;- genelist[, 1]</code></pre>
-<pre class="r"><code>gobp &lt;- rio::import(here::here(&quot;GO_dataset&quot;, &quot;GObp.rds&quot;))
-gocc &lt;- rio::import(here::here(&quot;GO_dataset&quot;, &quot;GOcc.rds&quot;))
-gomf &lt;- rio::import(here::here(&quot;GO_dataset&quot;, &quot;GOmf.rds&quot;))
-gocombined &lt;- rio::import(here::here(&quot;GO_dataset&quot;, &quot;GOcombined.rds&quot;))
-
-#gobp &lt;- readRDS(&quot;GObp.rds&quot;)
-#gocc &lt;- readRDS(&quot;GOcc.rds&quot;)
-#gomf &lt;- readRDS(&quot;GOmf.rds&quot;)
-#gocombined &lt;- readRDS(&quot;GOcombined.rds&quot;)</code></pre>
-<pre class="r"><code>gobp_terms &lt;- rev(stack(gobp))
-str(gobp_terms)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    142565 obs. of  2 variables:
-##  $ ind   : Factor w/ 11138 levels &quot;GO:0006468 BP protein phosphorylation&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ values: chr  &quot;CDK1&quot; &quot;NEK11&quot; &quot;IKBKE&quot; &quot;CHEK1&quot; ...</code></pre>
-<pre class="r"><code>gocc_terms &lt;- rev(stack(gocc))
-str(gocc_terms)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    70387 obs. of  2 variables:
-##  $ ind   : Factor w/ 1493 levels &quot;GO:0005634 CC nucleus&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ values: chr  &quot;CDK1&quot; &quot;PCGF2&quot; &quot;NIF3L1BP1&quot; &quot;TSEN34&quot; ...</code></pre>
-<pre class="r"><code>gomf_terms &lt;- rev(stack(gomf))
-str(gomf_terms)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    60871 obs. of  2 variables:
-##  $ ind   : Factor w/ 3858 levels &quot;GO:0005509 MF calcium ion binding&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ values: chr  &quot;PDCD6&quot; &quot;EHD1&quot; &quot;CRB1&quot; &quot;ANXA8L1&quot; ...</code></pre>
-<pre class="r"><code>gocombined_terms &lt;- rev(stack(gocombined))
-str(gocombined_terms)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    273829 obs. of  2 variables:
-##  $ ind   : Factor w/ 16492 levels &quot;GO:0005509 MF calcium ion binding&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ values: chr  &quot;PDCD6&quot; &quot;EHD1&quot; &quot;CRB1&quot; &quot;ANXA8L1&quot; ...</code></pre>
-<pre class="r"><code>#goterms &lt;- rev(stack(golist))
-#str(goterms)</code></pre>
-<p>Enrichment analysis</p>
-<pre class="r"><code>ora &lt;- as.data.frame(enricher(gene = Genevec ,
-                              maxGSSize = 50000, 
-                              TERM2GENE = gocombined_terms, #for TERM2GENE, options are: gobp_terms, gocc_terms, gomf_terms, gocombined_terms
-                              pAdjustMethod=&quot;fdr&quot;,  
-                              pvalueCutoff = 1, 
-                              qvalueCutoff = 1  ))</code></pre>
-<pre class="r"><code>#head(ora)</code></pre>
-<p>##calculating enrichment score</p>
-<pre class="r"><code>ora$gene &lt;- NULL
-ora &lt;- subset(ora,p.adjust&lt;0.05 &amp; Count &gt;=10)
-ora_s &lt;- rownames(ora)
-
-gr &lt;- as.numeric(sapply(strsplit(ora$GeneRatio,&quot;/&quot;),&quot;[[&quot;,1)) /
-  as.numeric(sapply(strsplit(ora$GeneRatio,&quot;/&quot;),&quot;[[&quot;,2))
-
-br &lt;- as.numeric(sapply(strsplit(ora$BgRatio,&quot;/&quot;),&quot;[[&quot;,1)) /
-  as.numeric(sapply(strsplit(ora$BgRatio,&quot;/&quot;),&quot;[[&quot;,2))
-
-ora_new &lt;- cbind(ora, gr, br)
-
-ora_new</code></pre>
-<pre><code>##                                                                                                      ID
-## GO:0005576 CC extracellular region                                   GO:0005576 CC extracellular region
-## GO:0055085 BP transmembrane transport                             GO:0055085 BP transmembrane transport
-## GO:0034220 BP ion transmembrane transport                     GO:0034220 BP ion transmembrane transport
-## GO:0005615 CC extracellular space                                     GO:0005615 CC extracellular space
-## GO:0030154 BP cell differentiation                                   GO:0030154 BP cell differentiation
-## GO:0005887 CC integral component of plasma membrane GO:0005887 CC integral component of plasma membrane
-##                                                                                             Description
-## GO:0005576 CC extracellular region                                   GO:0005576 CC extracellular region
-## GO:0055085 BP transmembrane transport                             GO:0055085 BP transmembrane transport
-## GO:0034220 BP ion transmembrane transport                     GO:0034220 BP ion transmembrane transport
-## GO:0005615 CC extracellular space                                     GO:0005615 CC extracellular space
-## GO:0030154 BP cell differentiation                                   GO:0030154 BP cell differentiation
-## GO:0005887 CC integral component of plasma membrane GO:0005887 CC integral component of plasma membrane
-##                                                     GeneRatio    BgRatio
-## GO:0005576 CC extracellular region                     50/240 1594/19676
-## GO:0055085 BP transmembrane transport                  25/240  668/19676
-## GO:0034220 BP ion transmembrane transport              14/240  253/19676
-## GO:0005615 CC extracellular space                      33/240 1301/19676
-## GO:0030154 BP cell differentiation                     16/240  456/19676
-## GO:0005887 CC integral component of plasma membrane    30/240 1315/19676
-##                                                           pvalue     p.adjust
-## GO:0005576 CC extracellular region                  4.251253e-10 4.553091e-07
-## GO:0055085 BP transmembrane transport               7.086893e-07 2.530021e-04
-## GO:0034220 BP ion transmembrane transport           2.934677e-06 7.857597e-04
-## GO:0005615 CC extracellular space                   5.164523e-05 5.781590e-03
-## GO:0030154 BP cell differentiation                  1.610957e-04 1.232382e-02
-## GO:0005887 CC integral component of plasma membrane 6.986166e-04 2.992874e-02
-##                                                           qvalue
-## GO:0005576 CC extracellular region                  4.175177e-07
-## GO:0055085 BP transmembrane transport               2.320025e-04
-## GO:0034220 BP ion transmembrane transport           7.205403e-04
-## GO:0005615 CC extracellular space                   5.301709e-03
-## GO:0030154 BP cell differentiation                  1.130092e-02
-## GO:0005887 CC integral component of plasma membrane 2.744460e-02
-##                                                                                                                                                                                                                                                                                                                                                            geneID
-## GO:0005576 CC extracellular region                  PRSS38/FDCSP/IGFL3/LCN15/CSN3/ADIPOQ/SPINK6/DEFB125/TTR/LCN1/BPIFA2/IGF2/ADGRF1/THBS4/TMPRSS11E/MTRNR2L6/PNLIP/VTN/EPPIN/VSTM2L/S100A7/CRP/MATN4/KISS1/C1QL2/KIRREL3/PIP/PSG5/LGI1/NXPH2/ADCYAP1/WFIKKN2/KERA/LUZP2/GCG/DEFA4/KLK4/DEFA3/SPACA3/NPPB/CRISP3/SFTPB/FGF9/PSG9/VWA5B1/CGA/GREM2/FAM24B/PSG8/PRG4
-## GO:0055085 BP transmembrane transport                                                                                                                                                            CSN3/FXYD4/RHBG/AQP10/AQP5/LCN1/CLCNKB/RHAG/ABCB5/GABRA3/ATP6V0A4/ATP6V0D2/PIP/SLC4A1/ATP6V1B1/SLC4A9/TRPV5/AQP6/ATP6V1G3/GJD2/BSND/SLC26A7/RHCG/SLC24A2/ATP13A5
-## GO:0034220 BP ion transmembrane transport                                                                                                                                                                                                                     FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/BSND/SLC24A2/ATP13A5
-## GO:0005615 CC extracellular space                                                                                                                              MUC16/PTPRZ1/CSN3/ADIPOQ/IL22RA2/TTR/SPOCK3/LCN1/IGF2/RBBP8NL/THBS4/VTN/EPPIN/INSL4/CRP/KISS1/SERPINB3/PIP/LGI1/CRISP2/ADCYAP1/KERA/GCG/DEFA4/DEFA3/OLFM4/NPPB/CRISP3/SFTPB/FGF9/GREM2/FRMD7/TDGF1
-## GO:0030154 BP cell differentiation                                                                                                                                                                                                                                   CPLX2/HMX2/KRT6A/FOXI1/SMOC1/ABCB5/SOHLH1/ZIC2/FOXE1/NR5A1/DAZ1/ROS1/FOXI2/TBATA/TDGF1/HEMGN
-## GO:0005887 CC integral component of plasma membrane                                                                                                                    PTPRZ1/UTS2R/HTR5A/NTSR2/FXYD4/RHBG/MLANA/AQP5/CLCNKB/RHAG/GRIK1/ABCB5/TMPRSS11E/GABRA3/SLC4A1/GRM1/RDH8/HTR1D/TRPV5/SLC18A3/AQP6/CCKAR/CHRM1/BSND/SLC26A7/RHCG/SLC24A2/GCGR/ADRB1/ATP13A5
-##                                                     Count         gr         br
-## GO:0005576 CC extracellular region                     50 0.20833333 0.08101240
-## GO:0055085 BP transmembrane transport                  25 0.10416667 0.03394999
-## GO:0034220 BP ion transmembrane transport              14 0.05833333 0.01285830
-## GO:0005615 CC extracellular space                      33 0.13750000 0.06612116
-## GO:0030154 BP cell differentiation                     16 0.06666667 0.02317544
-## GO:0005887 CC integral component of plasma membrane    30 0.12500000 0.06683269</code></pre>
-<pre class="r"><code>## put ES values in table - append</code></pre>
-<pre class="r"><code>ora_new %&gt;%
+<ol start="3" style="list-style-type: decimal">
+<li><p>Loading GO datsets</p></li>
+<li><p>Performing Enrichment analysis</p></li>
+<li><p>Calculating enrichment scores</p></li>
+<li><p>Selecting pathways with FDR&lt;0.05</p></li>
+</ol>
+<pre class="r"><code>ora_fdr &lt;- ora_fdr_arranged %&gt;%
+  filter(p.adjust &lt; 0.05)</code></pre>
+<pre class="r"><code>ora_fdr %&gt;%
   kbl(caption=&quot;Genes and GO Terms identified&quot;) %&gt;%
   kable_paper(&quot;hover&quot;, full_width = F)</code></pre>
 <table class=" lightable-paper lightable-hover" style="font-family: &quot;Arial Narrow&quot;, arial, helvetica, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
@@ -713,10 +707,8 @@ Genes and GO Terms identified
 </caption>
 <thead>
 <tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:left;">
-ID
+<th style="text-align:right;">
+S_No
 </th>
 <th style="text-align:left;">
 Description
@@ -748,15 +740,15 @@ gr
 <th style="text-align:right;">
 br
 </th>
+<th style="text-align:right;">
+EnrichmentScore
+</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align:left;">
-<a href="GO:0005576" class="uri">GO:0005576</a> CC extracellular region
-</td>
-<td style="text-align:left;">
-<a href="GO:0005576" class="uri">GO:0005576</a> CC extracellular region
+<td style="text-align:right;">
+1
 </td>
 <td style="text-align:left;">
 <a href="GO:0005576" class="uri">GO:0005576</a> CC extracellular region
@@ -777,7 +769,11 @@ br
 0.0000004
 </td>
 <td style="text-align:left;">
-PRSS38/FDCSP/IGFL3/LCN15/CSN3/ADIPOQ/SPINK6/DEFB125/TTR/LCN1/BPIFA2/IGF2/ADGRF1/THBS4/TMPRSS11E/MTRNR2L6/PNLIP/VTN/EPPIN/VSTM2L/S100A7/CRP/MATN4/KISS1/C1QL2/KIRREL3/PIP/PSG5/LGI1/NXPH2/ADCYAP1/WFIKKN2/KERA/LUZP2/GCG/DEFA4/KLK4/DEFA3/SPACA3/NPPB/CRISP3/SFTPB/FGF9/PSG9/VWA5B1/CGA/GREM2/FAM24B/PSG8/PRG4
+PRSS38 FDCSP IGFL3 LCN15 CSN3 ADIPOQ SPINK6 DEFB125 TTR LCN1 BPIFA2 IGF2
+ADGRF1 THBS4 TMPRSS11E MTRNR2L6 PNLIP VTN EPPIN VSTM2L S100A7 CRP MATN4
+KISS1 C1QL2 KIRREL3 PIP PSG5 LGI1 NXPH2 ADCYAP1 WFIKKN2 KERA LUZP2 GCG
+DEFA4 KLK4 DEFA3 SPACA3 NPPB CRISP3 SFTPB FGF9 PSG9 VWA5B1 CGA GREM2
+FAM24B PSG8 PRG4
 </td>
 <td style="text-align:right;">
 50
@@ -788,15 +784,13 @@ PRSS38/FDCSP/IGFL3/LCN15/CSN3/ADIPOQ/SPINK6/DEFB125/TTR/LCN1/BPIFA2/IGF2/ADGRF1/
 <td style="text-align:right;">
 0.0810124
 </td>
+<td style="text-align:right;">
+2.571623
+</td>
 </tr>
 <tr>
-<td style="text-align:left;">
-<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
-transport
-</td>
-<td style="text-align:left;">
-<a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
-transport
+<td style="text-align:right;">
+3
 </td>
 <td style="text-align:left;">
 <a href="GO:0055085" class="uri">GO:0055085</a> BP transmembrane
@@ -818,7 +812,9 @@ transport
 0.0002320
 </td>
 <td style="text-align:left;">
-CSN3/FXYD4/RHBG/AQP10/AQP5/LCN1/CLCNKB/RHAG/ABCB5/GABRA3/ATP6V0A4/ATP6V0D2/PIP/SLC4A1/ATP6V1B1/SLC4A9/TRPV5/AQP6/ATP6V1G3/GJD2/BSND/SLC26A7/RHCG/SLC24A2/ATP13A5
+CSN3 FXYD4 RHBG AQP10 AQP5 LCN1 CLCNKB RHAG ABCB5 GABRA3 ATP6V0A4
+ATP6V0D2 PIP SLC4A1 ATP6V1B1 SLC4A9 TRPV5 AQP6 ATP6V1G3 GJD2 BSND
+SLC26A7 RHCG SLC24A2 ATP13A5
 </td>
 <td style="text-align:right;">
 25
@@ -829,15 +825,13 @@ CSN3/FXYD4/RHBG/AQP10/AQP5/LCN1/CLCNKB/RHAG/ABCB5/GABRA3/ATP6V0A4/ATP6V0D2/PIP/S
 <td style="text-align:right;">
 0.0339500
 </td>
+<td style="text-align:right;">
+3.068239
+</td>
 </tr>
 <tr>
-<td style="text-align:left;">
-<a href="GO:0034220" class="uri">GO:0034220</a> BP ion transmembrane
-transport
-</td>
-<td style="text-align:left;">
-<a href="GO:0034220" class="uri">GO:0034220</a> BP ion transmembrane
-transport
+<td style="text-align:right;">
+4
 </td>
 <td style="text-align:left;">
 <a href="GO:0034220" class="uri">GO:0034220</a> BP ion transmembrane
@@ -859,7 +853,8 @@ transport
 0.0007205
 </td>
 <td style="text-align:left;">
-FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/BSND/SLC24A2/ATP13A5
+FXYD4 AQP10 AQP5 CLCNKB GRIK1 GABRA3 ATP6V0A4 ATP6V0D2 ATP6V1B1 TRPV5
+ATP6V1G3 BSND SLC24A2 ATP13A5
 </td>
 <td style="text-align:right;">
 14
@@ -870,13 +865,13 @@ FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/B
 <td style="text-align:right;">
 0.0128583
 </td>
+<td style="text-align:right;">
+4.536627
+</td>
 </tr>
 <tr>
-<td style="text-align:left;">
-<a href="GO:0005615" class="uri">GO:0005615</a> CC extracellular space
-</td>
-<td style="text-align:left;">
-<a href="GO:0005615" class="uri">GO:0005615</a> CC extracellular space
+<td style="text-align:right;">
+9
 </td>
 <td style="text-align:left;">
 <a href="GO:0005615" class="uri">GO:0005615</a> CC extracellular space
@@ -897,7 +892,9 @@ FXYD4/AQP10/AQP5/CLCNKB/GRIK1/GABRA3/ATP6V0A4/ATP6V0D2/ATP6V1B1/TRPV5/ATP6V1G3/B
 0.0053017
 </td>
 <td style="text-align:left;">
-MUC16/PTPRZ1/CSN3/ADIPOQ/IL22RA2/TTR/SPOCK3/LCN1/IGF2/RBBP8NL/THBS4/VTN/EPPIN/INSL4/CRP/KISS1/SERPINB3/PIP/LGI1/CRISP2/ADCYAP1/KERA/GCG/DEFA4/DEFA3/OLFM4/NPPB/CRISP3/SFTPB/FGF9/GREM2/FRMD7/TDGF1
+MUC16 PTPRZ1 CSN3 ADIPOQ IL22RA2 TTR SPOCK3 LCN1 IGF2 RBBP8NL THBS4 VTN
+EPPIN INSL4 CRP KISS1 SERPINB3 PIP LGI1 CRISP2 ADCYAP1 KERA GCG DEFA4
+DEFA3 OLFM4 NPPB CRISP3 SFTPB FGF9 GREM2 FRMD7 TDGF1
 </td>
 <td style="text-align:right;">
 33
@@ -908,13 +905,13 @@ MUC16/PTPRZ1/CSN3/ADIPOQ/IL22RA2/TTR/SPOCK3/LCN1/IGF2/RBBP8NL/THBS4/VTN/EPPIN/IN
 <td style="text-align:right;">
 0.0661212
 </td>
+<td style="text-align:right;">
+2.079516
+</td>
 </tr>
 <tr>
-<td style="text-align:left;">
-<a href="GO:0030154" class="uri">GO:0030154</a> BP cell differentiation
-</td>
-<td style="text-align:left;">
-<a href="GO:0030154" class="uri">GO:0030154</a> BP cell differentiation
+<td style="text-align:right;">
+14
 </td>
 <td style="text-align:left;">
 <a href="GO:0030154" class="uri">GO:0030154</a> BP cell differentiation
@@ -935,7 +932,8 @@ MUC16/PTPRZ1/CSN3/ADIPOQ/IL22RA2/TTR/SPOCK3/LCN1/IGF2/RBBP8NL/THBS4/VTN/EPPIN/IN
 0.0113009
 </td>
 <td style="text-align:left;">
-CPLX2/HMX2/KRT6A/FOXI1/SMOC1/ABCB5/SOHLH1/ZIC2/FOXE1/NR5A1/DAZ1/ROS1/FOXI2/TBATA/TDGF1/HEMGN
+CPLX2 HMX2 KRT6A FOXI1 SMOC1 ABCB5 SOHLH1 ZIC2 FOXE1 NR5A1 DAZ1 ROS1
+FOXI2 TBATA TDGF1 HEMGN
 </td>
 <td style="text-align:right;">
 16
@@ -946,15 +944,13 @@ CPLX2/HMX2/KRT6A/FOXI1/SMOC1/ABCB5/SOHLH1/ZIC2/FOXE1/NR5A1/DAZ1/ROS1/FOXI2/TBATA
 <td style="text-align:right;">
 0.0231754
 </td>
+<td style="text-align:right;">
+2.876608
+</td>
 </tr>
 <tr>
-<td style="text-align:left;">
-<a href="GO:0005887" class="uri">GO:0005887</a> CC integral component of
-plasma membrane
-</td>
-<td style="text-align:left;">
-<a href="GO:0005887" class="uri">GO:0005887</a> CC integral component of
-plasma membrane
+<td style="text-align:right;">
+25
 </td>
 <td style="text-align:left;">
 <a href="GO:0005887" class="uri">GO:0005887</a> CC integral component of
@@ -976,7 +972,9 @@ plasma membrane
 0.0274446
 </td>
 <td style="text-align:left;">
-PTPRZ1/UTS2R/HTR5A/NTSR2/FXYD4/RHBG/MLANA/AQP5/CLCNKB/RHAG/GRIK1/ABCB5/TMPRSS11E/GABRA3/SLC4A1/GRM1/RDH8/HTR1D/TRPV5/SLC18A3/AQP6/CCKAR/CHRM1/BSND/SLC26A7/RHCG/SLC24A2/GCGR/ADRB1/ATP13A5
+PTPRZ1 UTS2R HTR5A NTSR2 FXYD4 RHBG MLANA AQP5 CLCNKB RHAG GRIK1 ABCB5
+TMPRSS11E GABRA3 SLC4A1 GRM1 RDH8 HTR1D TRPV5 SLC18A3 AQP6 CCKAR CHRM1
+BSND SLC26A7 RHCG SLC24A2 GCGR ADRB1 ATP13A5
 </td>
 <td style="text-align:right;">
 30
@@ -986,6 +984,9 @@ PTPRZ1/UTS2R/HTR5A/NTSR2/FXYD4/RHBG/MLANA/AQP5/CLCNKB/RHAG/GRIK1/ABCB5/TMPRSS11E
 </td>
 <td style="text-align:right;">
 0.0668327
+</td>
+<td style="text-align:right;">
+1.870342
 </td>
 </tr>
 </tbody>
@@ -1018,8 +1019,9 @@ PTPRZ1/UTS2R/HTR5A/NTSR2/FXYD4/RHBG/MLANA/AQP5/CLCNKB/RHAG/GRIK1/ABCB5/TMPRSS11E
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] usethis_2.2.3          dplyr_1.1.4            here_1.0.1            
-## [4] rio_1.0.1              kableExtra_1.4.0       clusterProfiler_4.10.0
+## [1] gtsummary_1.7.2        usethis_2.2.3          dplyr_1.1.4           
+## [4] here_1.0.1             rio_1.0.1              kableExtra_1.4.0      
+## [7] clusterProfiler_4.10.0
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] RColorBrewer_1.1-3      rstudioapi_0.15.0       jsonlite_1.8.8         
@@ -1028,41 +1030,42 @@ PTPRZ1/UTS2R/HTR5A/NTSR2/FXYD4/RHBG/MLANA/AQP5/CLCNKB/RHAG/GRIK1/ABCB5/TMPRSS11E
 ##  [10] memoise_2.0.1           RCurl_1.98-1.14         ggtree_3.10.0          
 ##  [13] htmltools_0.5.7         gridGraphics_0.5-1      sass_0.4.9             
 ##  [16] bslib_0.6.1             plyr_1.8.9              cachem_1.0.8           
-##  [19] igraph_2.0.3            lifecycle_1.0.4         pkgconfig_2.0.3        
-##  [22] Matrix_1.6-5            R6_2.5.1                fastmap_1.1.1          
-##  [25] gson_0.1.0              GenomeInfoDbData_1.2.11 digest_0.6.35          
-##  [28] aplot_0.2.2             enrichplot_1.22.0       colorspace_2.1-0       
-##  [31] patchwork_1.2.0         AnnotationDbi_1.64.1    S4Vectors_0.40.2       
-##  [34] rprojroot_2.0.4         RSQLite_2.3.5           fansi_1.0.6            
-##  [37] httr_1.4.7              polyclip_1.10-6         compiler_4.3.3         
-##  [40] bit64_4.0.5             withr_3.0.0             BiocParallel_1.36.0    
-##  [43] viridis_0.6.5           DBI_1.2.2               highr_0.10             
-##  [46] ggforce_0.4.2           R.utils_2.12.3          MASS_7.3-60.0.1        
-##  [49] HDO.db_0.99.1           tools_4.3.3             ape_5.7-1              
-##  [52] scatterpie_0.2.1        R.oo_1.26.0             glue_1.7.0             
-##  [55] nlme_3.1-164            GOSemSim_2.28.0         grid_4.3.3             
-##  [58] shadowtext_0.1.3        reshape2_1.4.4          fgsea_1.28.0           
-##  [61] generics_0.1.3          gtable_0.3.4            R.methodsS3_1.8.2      
-##  [64] tidyr_1.3.1             data.table_1.15.2       tidygraph_1.3.1        
-##  [67] xml2_1.3.6              utf8_1.2.4              XVector_0.42.0         
-##  [70] BiocGenerics_0.48.1     ggrepel_0.9.5           pillar_1.9.0           
-##  [73] stringr_1.5.1           yulab.utils_0.1.4       splines_4.3.3          
-##  [76] tweenr_2.0.3            treeio_1.26.0           lattice_0.22-5         
-##  [79] bit_4.0.5               tidyselect_1.2.1        GO.db_3.18.0           
-##  [82] Biostrings_2.70.1       knitr_1.45              gridExtra_2.3          
-##  [85] IRanges_2.36.0          svglite_2.1.3           stats4_4.3.3           
-##  [88] xfun_0.42               graphlayouts_1.1.1      Biobase_2.62.0         
-##  [91] stringi_1.8.3           lazyeval_0.2.2          ggfun_0.1.4            
-##  [94] yaml_2.3.8              pacman_0.5.1            evaluate_0.23          
-##  [97] codetools_0.2-19        ggraph_2.2.1            tibble_3.2.1           
-## [100] qvalue_2.34.0           ggplotify_0.1.2         cli_3.6.2              
-## [103] systemfonts_1.0.6       munsell_0.5.0           jquerylib_0.1.4        
-## [106] Rcpp_1.0.12             GenomeInfoDb_1.38.5     png_0.1-8              
-## [109] parallel_4.3.3          ggplot2_3.5.0           blob_1.2.4             
-## [112] DOSE_3.28.2             bitops_1.0-7            viridisLite_0.4.2      
-## [115] tidytree_0.4.6          scales_1.3.0            purrr_1.0.2            
-## [118] crayon_1.5.2            rlang_1.1.3             cowplot_1.1.3          
-## [121] fastmatch_1.1-4         KEGGREST_1.42.0</code></pre>
+##  [19] gt_0.10.1               igraph_2.0.3            lifecycle_1.0.4        
+##  [22] pkgconfig_2.0.3         Matrix_1.6-5            R6_2.5.1               
+##  [25] fastmap_1.1.1           gson_0.1.0              GenomeInfoDbData_1.2.11
+##  [28] digest_0.6.35           aplot_0.2.2             enrichplot_1.22.0      
+##  [31] colorspace_2.1-0        patchwork_1.2.0         AnnotationDbi_1.64.1   
+##  [34] S4Vectors_0.40.2        rprojroot_2.0.4         RSQLite_2.3.5          
+##  [37] fansi_1.0.6             httr_1.4.7              polyclip_1.10-6        
+##  [40] compiler_4.3.3          bit64_4.0.5             withr_3.0.0            
+##  [43] BiocParallel_1.36.0     viridis_0.6.5           DBI_1.2.2              
+##  [46] highr_0.10              R.utils_2.12.3          ggforce_0.4.2          
+##  [49] MASS_7.3-60.0.1         HDO.db_0.99.1           tools_4.3.3            
+##  [52] ape_5.7-1               scatterpie_0.2.1        R.oo_1.26.0            
+##  [55] glue_1.7.0              nlme_3.1-164            GOSemSim_2.28.0        
+##  [58] grid_4.3.3              shadowtext_0.1.3        reshape2_1.4.4         
+##  [61] fgsea_1.28.0            generics_0.1.3          gtable_0.3.4           
+##  [64] R.methodsS3_1.8.2       tidyr_1.3.1             data.table_1.15.2      
+##  [67] tidygraph_1.3.1         xml2_1.3.6              utf8_1.2.4             
+##  [70] XVector_0.42.0          BiocGenerics_0.48.1     ggrepel_0.9.5          
+##  [73] pillar_1.9.0            stringr_1.5.1           yulab.utils_0.1.4      
+##  [76] splines_4.3.3           tweenr_2.0.3            treeio_1.26.0          
+##  [79] lattice_0.22-5          bit_4.0.5               tidyselect_1.2.1       
+##  [82] GO.db_3.18.0            Biostrings_2.70.1       knitr_1.45             
+##  [85] gridExtra_2.3           IRanges_2.36.0          svglite_2.1.3          
+##  [88] stats4_4.3.3            xfun_0.42               graphlayouts_1.1.1     
+##  [91] Biobase_2.62.0          stringi_1.8.3           lazyeval_0.2.2         
+##  [94] ggfun_0.1.4             yaml_2.3.8              pacman_0.5.1           
+##  [97] evaluate_0.23           codetools_0.2-19        ggraph_2.2.1           
+## [100] tibble_3.2.1            qvalue_2.34.0           ggplotify_0.1.2        
+## [103] cli_3.6.2               systemfonts_1.0.6       munsell_0.5.0          
+## [106] jquerylib_0.1.4         Rcpp_1.0.12             GenomeInfoDb_1.38.5    
+## [109] png_0.1-8               parallel_4.3.3          ggplot2_3.5.0          
+## [112] blob_1.2.4              DOSE_3.28.2             bitops_1.0-7           
+## [115] viridisLite_0.4.2       broom.helpers_1.14.0    tidytree_0.4.6         
+## [118] scales_1.3.0            purrr_1.0.2             crayon_1.5.2           
+## [121] rlang_1.1.3             cowplot_1.1.3           fastmatch_1.1-4        
+## [124] KEGGREST_1.42.0</code></pre>
 <pre class="r"><code>##gitcreds_set()
 ##git clone (https://github.com/anusuiyaxbora/DAVID_Reborn.git)</code></pre>
 </div>
@@ -1100,6 +1103,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

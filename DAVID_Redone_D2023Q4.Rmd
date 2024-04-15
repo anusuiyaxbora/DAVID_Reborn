@@ -1,0 +1,147 @@
+---
+title: "DAVID Redone Code for 2023Q4 Version"
+author: "Anusuiya Bora; s222331482@deakin.edu.au"
+#output: html_document
+output: 
+  html_document:
+    code_folding: show 
+date: "2024-03-13"
+---
+
+```{r loading_libraries}
+
+# install.packages("pacman")  #this installs package. Only do once.
+
+pacman::p_load(clusterProfiler,
+               kableExtra,
+               rio,           # package for importing and exporting data
+               here,          # points R in particular directories to look for files; uses relative file paths; to tell                                 R where our data is; used with "rio" package; good for relative file path
+               dplyr,         # to manipulate data
+               usethis      # handy data cleaning functions
+)
+
+
+```
+
+
+Input gene list:
+
+``` {r loading_input_genes}
+
+genelist <- read.csv("PMC6587650.csv")
+Genevec <- genelist[, 1]
+
+```
+
+```{r load_GORDS, include = TRUE, eval = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
+
+gobp_q42023 <- rio::import(here::here("GO_Dataset_D2023q4", "GO_bp_2023q4.Rds"))
+gocc_q42023 <- rio::import(here::here("GO_Dataset_D2023q4",  "GO_combined_2023q4.Rds"))
+gomf_q42023 <- rio::import(here::here("GO_Dataset_D2023q4",  "GO_combined_2023q4.Rds"))
+gocombined_q42023 <- rio::import(here::here("GO_Dataset_D2023q4",  "GO_combined_2023q4.Rds"))
+
+
+```
+
+
+```{r converting_RDS2gmt}
+gobp_q4terms <- rev(stack(gobp_q42023))
+str(gobp_terms)
+
+gocc_q4terms <- rev(stack(gocc_q42023))
+str(gocc_terms)
+
+gomf_q4terms <- rev(stack(gomf_q42023))
+str(gomf_terms)
+
+gocombinedq4_terms <- rev(stack(gocombined_q42023))
+str(gocombinedQ4_terms)
+
+#goterms <- rev(stack(golist))
+#str(goterms)
+
+```
+
+## Enrichment analysis
+
+```{r enricher_code, include =FALSE}
+ora_D2023Q4 <- as.data.frame(enricher(gene = Genevec ,
+                              maxGSSize = 50000, 
+                              TERM2GENE = gocombinedq4_terms, #for TERM2GENE, options are: gobp_terms, gocc_terms, gomf_terms, gocombined_terms
+                              pAdjustMethod="fdr",  
+                              pvalueCutoff = 1, 
+                              qvalueCutoff = 1  ))
+
+x <- gsub("/", " ", ora_D2023Q4$geneID)
+x
+
+ora_D2023Q4$geneID <- x
+
+ora_D2023Q4 %>% select(-ID)
+
+ora_D2023Q4
+```
+
+``` {r view_heading_ora}
+#head(ora)
+
+```
+
+
+from here
+
+Calculating enrichment score
+
+``` {r ES_calculation, include =FALSE}
+
+ora_D2023Q4$gene <- NULL
+ora_D2023Q4 <- subset(ora_D2023Q4, p.adjust<0.05 & Count >=10)
+ora_s_D2023Q4 <- rownames(ora_D2023Q4)
+
+gr <- as.numeric(sapply(strsplit(ora_D2023Q4$GeneRatio,"/"),"[[",1)) /
+  as.numeric(sapply(strsplit(ora_D2023Q4$GeneRatio,"/"),"[[",2))
+
+br <- as.numeric(sapply(strsplit(ora_D2023Q4$BgRatio,"/"),"[[",1)) /
+  as.numeric(sapply(strsplit(ora_D2023Q4$BgRatio,"/"),"[[",2))
+
+ora_D2023Q4_new <- cbind(ora_D2023Q4, gr, br)
+
+ora_D2023Q4_new 
+
+
+## put ES values in table - append
+
+
+```
+
+
+```{r output_table}
+
+ora_D2023Q4_new  %>%
+  kbl(caption="Genes and GO Terms identified") %>%
+  kable_paper("hover", full_width = F)
+
+ora_D2023Q4_new %>% 
+  select(Description, GeneRatio, BgRatio, pvalue, p.adjust, qvalue, geneID, Count)
+
+ora_D2023Q4_new
+#remove_column(kable(ID), 1)
+
+```
+
+## Session information
+
+For reproducibility.
+
+```{r,sessioninfo}
+
+sessionInfo()
+
+```
+
+```{r github_upload}
+
+##gitcreds_set()
+##git clone (https://github.com/anusuiyaxbora/DAVID_Reborn.git)
+
+```
