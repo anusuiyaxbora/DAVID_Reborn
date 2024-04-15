@@ -18,7 +18,7 @@ install.packages("pacman")  #this installs package. Only do once.
 pacman::p_load(clusterProfiler,
                kableExtra,
                rio,           # package for importing and exporting data
-               here,          # points R in particular directories to look for files;                          uses relative file paths; to tell R where our data is; used with "rio" package; good for relative file path
+               here,          # points R in particular directories to look for files; uses relative file paths; to tell R where our data is; used with "rio" package; good for relative file path
                dplyr,         # to manipulate data
                usethis,       # handy data cleaning functions
                gtsummary
@@ -81,12 +81,12 @@ ora <- as.data.frame(enricher(gene = Genevec ,
                               pvalueCutoff = 1, 
                               qvalueCutoff = 1  ))
 
-x <- gsub("/", " ", ora$geneID)
+x <- gsub("/", " ", ora$geneID) #to separate geneIds from /
 x
 ora$geneID <- x
 
 ora$ID <- NULL
-rownames(ora) <- NULL
+rownames(ora) <- NULL #removing empty 1st column name
 
 ora$S_No <- seq_len(nrow(ora))
 ora <- ora[, c("S_No", names(ora)[-which(names(ora) == "S_No")])]
@@ -142,19 +142,12 @@ ora_fdr %>%
 ```
 
 
-## Session information
+### Session information
 
 For reproducibility.
 
 ```{r,sessioninfo}
 
 sessionInfo()
-
-```
-
-```{r github_upload}
-
-##gitcreds_set()
-##git clone (https://github.com/anusuiyaxbora/DAVID_Reborn.git)
 
 ```
