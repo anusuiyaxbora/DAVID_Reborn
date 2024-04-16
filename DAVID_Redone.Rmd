@@ -5,7 +5,7 @@ author: "Anusuiya Bora; s222331482@deakin.edu.au"
 output: 
   html_document:
     code_folding: show 
-date: "2024-03-13"
+date: "2024-04-16"
 ---
 
 ### Methodology:
@@ -21,7 +21,9 @@ pacman::p_load(clusterProfiler,
                here,          # points R in particular directories to look for files; uses relative file paths; to tell R where our data is; used with "rio" package; good for relative file path
                dplyr,         # to manipulate data
                usethis,       # handy data cleaning functions
-               gtsummary
+               gtsummary,
+               plotly,
+               ggplot2
 )
 
 ```
@@ -141,6 +143,20 @@ ora_fdr %>%
 
 ```
 
+```{r pie_chart}
+
+aggregate_data <- aggregate(EnrichmentScore ~ Description, data = ora_fdr, FUN = sum)
+
+# Create a pie chart
+pie(aggregate_data$EnrichmentScore, labels = aggregate_data$Description)
+
+ggplot(ora_fdr, aes(x = "", y = Description, fill = EnrichmentScore)) +
+  geom_bar(stat = "identity") +
+  coord_polar(theta = "y") +
+  labs(title = "Pie Chart for enriched terms", fill = "Category", y = NULL) +
+  theme_minimal()
+
+```
 
 ### Session information
 
