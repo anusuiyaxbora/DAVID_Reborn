@@ -13,18 +13,27 @@ date: "2024-04-16"
 
 ```{r loading_libraries}
 
-install.packages("pacman")  #this installs package. Only do once.
+#install.packages("pacman")  #this installs package. Only do once.
 
-pacman::p_load(clusterProfiler,
-               kableExtra,
-               rio,           # package for importing and exporting data
-               here,          # points R in particular directories to look for files; uses relative file paths; to tell R where our data is; used with "rio" package; good for relative file path
-               dplyr,         # to manipulate data
-               usethis,       # handy data cleaning functions
-               gtsummary,
-               plotly,
-               ggplot2
-)
+library("clusterProfiler")
+library("kableExtra")
+library("dplyr")
+library("rio")
+library("here")
+library("gtsummary")
+library("ggplot2")
+
+
+# pacman::p_load(clusterProfiler,
+#               kableExtra,
+#               rio,           # package for importing and exporting data
+#               here,          # points R in particular directories to look for files; uses relative file paths; to tell R where our data is; used with "rio" package; good for relative file path
+#               dplyr,         # to manipulate data
+#               usethis,       # handy data cleaning functions
+#               gtsummary,
+#               plotly,
+#               ggplot2
+#)
 
 ```
 
@@ -42,10 +51,10 @@ Genevec <- genelist[, 1]
 
 ```{r include=FALSE, echo=FALSE, load_GORDS}
 
-gobp <- rio::import(here::here("GO_dataset", "GObp.rds"))
-gocc <- rio::import(here::here("GO_dataset", "GOcc.rds"))
-gomf <- rio::import(here::here("GO_dataset", "GOmf.rds"))
-gocombined <- rio::import(here::here("GO_dataset", "GOcombined.rds"))
+gobp <- rio::import(here::here("DAVID_Reborn", "GO_dataset", "GObp.rds"))
+gocc <- rio::import(here::here("DAVID_Reborn", "GO_dataset", "GOcc.rds"))
+gomf <- rio::import(here::here("DAVID_Reborn", "GO_dataset", "GOmf.rds"))
+gocombined <- rio::import(here::here("DAVID_Reborn", "GO_dataset", "GOcombined.rds"))
 
 #gobp <- readRDS("GObp.rds")
 #gocc <- readRDS("GOcc.rds")
@@ -75,8 +84,9 @@ str(gocombined_terms)
 
 5) Performing Enrichment analysis
 
-```{r include=FALSE, echo=FALSE, enricher_code}
+```{r include=T, echo=T, enricher_code}
 ora <- as.data.frame(enricher(gene = Genevec ,
+                              minGSSize = 10,
                               maxGSSize = 50000, 
                               TERM2GENE = gocombined_terms, #for TERM2GENE, options are: gobp_terms, gocc_terms, gomf_terms, gocombined_terms
                               pAdjustMethod="fdr",  
@@ -84,7 +94,11 @@ ora <- as.data.frame(enricher(gene = Genevec ,
                               qvalueCutoff = 1  ))
 
 x <- gsub("/", " ", ora$geneID) #to separate geneIds from /
-x
+
+head(x)
+
+dim(ora)
+
 ora$geneID <- x
 
 ora$ID <- NULL
@@ -93,7 +107,7 @@ rownames(ora) <- NULL #removing empty 1st column name
 ora$S_No <- seq_len(nrow(ora))
 ora <- ora[, c("S_No", names(ora)[-which(names(ora) == "S_No")])]
 
-ora
+head(ora)
 
 ```
 
@@ -103,8 +117,6 @@ ora
 ``` {r include=FALSE, echo=FALSE, ES_calculation}
 
 ora$gene <- NULL
-ora <- subset(ora,p.adjust<0.05 & Count >=10)
-ora_s <- rownames(ora)
 
 gr <- as.numeric(sapply(strsplit(ora$GeneRatio,"/"),"[[",1)) /
   as.numeric(sapply(strsplit(ora$GeneRatio,"/"),"[[",2))
@@ -118,10 +130,11 @@ ora_new <- cbind(ora, gr, br, es)
 
 names(ora_new)[names(ora_new) == "es"] <- "EnrichmentScore"
 
-ora_new
-
-ora_fdr_arranged <- ora_new %>% 
+ora_arranged <- ora_new %>% 
   arrange(p.adjust)
+
+head(ora_arranged)
+
 
 ```
 
@@ -129,10 +142,11 @@ ora_fdr_arranged <- ora_new %>%
 
 ```{r pathways_FDR}
 
-ora_fdr <- ora_fdr_arranged %>%
+ora_fdr <- ora_arranged %>%
   filter(p.adjust < 0.05)
 
 ```
+
 
 
 ```{r output_table}
@@ -140,6 +154,20 @@ ora_fdr <- ora_fdr_arranged %>%
 ora_fdr %>%
   kbl(caption="Genes and GO Terms identified") %>%
   kable_paper("hover", full_width = F)
+
+```
+
+```{r complete_results, results='asis', echo=FALSE}
+
+HEADER=paste("<br><details><summary><b>","Click HERE to show results for all gene sets","</b></summary><br><p>",sep=" " )
+ 
+cat(HEADER)
+ 
+kbl(ora_arranged, format="html", row.names=FALSE, caption = "Complete results",digits=100) %>%
+kable_styling("hover", full_width = FALSE)
+ 
+cat("<br></p></details>")
+cat("<hr><br>")
 
 ```
 
@@ -153,8 +181,17 @@ pie(aggregate_data$EnrichmentScore, labels = aggregate_data$Description)
 ggplot(ora_fdr, aes(x = "", y = Description, fill = EnrichmentScore)) +
   geom_bar(stat = "identity") +
   coord_polar(theta = "y") +
-  labs(title = "Pie Chart for enriched terms", fill = "Category", y = NULL) +
+  labs(title = "Pie Chart for enriched terms", fill = "EnrichmentScore", y = NULL) +
   theme_minimal()
+
+```
+
+### Save object
+
+```{r save_object}
+
+saveRDS(ora_arranged, file = "ora.RDS")
+# z <- readRDS("ora.RDS")  #To read RDS 
 
 ```
 
